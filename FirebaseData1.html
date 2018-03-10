@@ -1,0 +1,160 @@
+<!DOCTYPE html> <html>
+<head>
+    <style>
+        .card {
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            transition: 0.3s;
+            width: 40%;
+            border-radius: 5px;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        }
+
+        img {
+            border-radius: 5px 5px 0 0;
+        }
+
+        .container {
+            padding: 2px 16px;
+        }    
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/4.10.0/firebase.js"></script>
+    <script>
+        class Note {
+            constructor(name, des) {
+                this.name = name;
+                this.des = des;
+            }
+        }
+    </script>
+    <script>
+      // Initialize Firebase
+      var config = {
+        apiKey: "AIzaSyBYn0-u-4jrsWB1f0TjnzSrb9rwujjO9Vk",
+        authDomain: "tinovation-data.firebaseapp.com",
+        databaseURL: "https://tinovation-data.firebaseio.com",
+        projectId: "tinovation-data",
+        storageBucket: "tinovation-data.appspot.com",
+        messagingSenderId: "438853586812"
+      };
+      firebase.initializeApp(config);
+        
+        var database = firebase.database();
+        var classroomParent = database.ref().child("Classrooms");
+        
+        var classes = {};
+        //loops through the classes
+        //finds the notes and adds them in
+        function updateNotes() {
+            classroomParent.ref.once("value")
+                .then(function(snapshot) {
+                snapshot.forEach(function(childSnapShot) {
+                    var key = childSnapShot.key;
+                    var val = childSnapShot.val();
+
+                    var notes = [];
+                    childSnapShot.forEach(function (child2SnapShot){
+                        var n = new Note(child2SnapShot.key, 
+                                        child2SnapShot.val());
+                       notes.push(n);
+                    });
+                    classes[key] = notes;
+                });
+            });
+            console.log(classes);
+        }
+        function addToFireBase(cN, nN, nD) {
+            console.log(cN + " " + nN + " " + nD);
+            var updates = {};
+            updates['/Classrooms/' + cN + '/' + nN] = nD; 
+            database.ref().update(updates);
+            updateNotes();
+        }
+        
+    </script>
+   <!-- <script src="jquery-3.3.1.min.js"></script>-->
+    
+    <script>
+        var notFinishedText;
+        var className;
+        var noteName;
+        var noteDes;
+        function init() {
+            notFinishedText = document.getElementById("NotFinishedText");
+            className = document.getElementById("className");
+            noteName = document.getElementById("noteName");
+            noteDes = document.getElementById("description");
+            updateNotes();
+        }
+        
+        function makeNewNote() {
+            if (className.value.length == 0 ||
+               noteName.value.length == 0 ||
+               noteDes.value.length == 0) {
+                notFinishedText.style.visibility = "visible";
+            } else{
+                var cN = className.value;
+                var nN = noteName.value;
+                var nD = noteDes.value;
+                
+                addToFireBase(cN, nN, nD);
+                
+                notFinishedText.style.visibility = "collapse";
+            }
+        }
+        
+        function displayNotes() {
+            document.getElementById("ClassDisplay").innerHTML = "";
+            for (var className in classes) {
+                var div = document.createElement("div");
+                div.style.lineHeight = "0%";
+                div.style.width = "25%";
+                
+                var classNameText = document.createElement("p");
+                classNameText.innerHTML = className;
+                classNameText.style.color = "red";
+                
+                div.append(classNameText);
+                
+                var noteArr = classes[className];
+                for (var i in noteArr) {
+                    var n = document.createElement("p");
+                    var d = document.createElement("p");
+                    n.innerHTML = noteArr[i].name; n.style.textAlign = "center";
+                    d.innerHTML = noteArr[i].des; d.style.textAlign = "center";
+                    
+                    div.append(n);
+                    div.append(d);
+                    div.append(document.createElement("br"));
+                }
+                document.getElementById("ClassDisplay").append(div);
+            }
+        }               
+    </script>
+    </head>
+    <body onload="init()">
+        <br><br>
+        <div align="center">
+            Class:<br>
+            <input type="text" id="className" value="class_name"><br>
+            Note Title:<br>
+            <input type="text" id="noteName" value="note_title"><br>
+            Notes:<br>
+            <textarea id="description" rows="5" cols="40">Today I learned...</textarea><br>
+            <button onclick="makeNewNote()" id="newNoteButton">Create!</button>
+        </div>
+        <div align="center">
+            <p style="color:red; visibility: collapse" id="NotFinishedText">Fill in all the fields!</p>
+        </div>
+        <br><br>
+        <button onclick="displayNotes()">Display Notes</button>
+        <div id="ClassDisplay">
+            
+        </div>
+    </body>
+    
+    
+    
+</html>
