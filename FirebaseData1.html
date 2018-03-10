@@ -1,6 +1,7 @@
 <!DOCTYPE html> <html>
 <head>
     <style>
+        /*Card Style for classes*/
         .card {
             box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
             transition: 0.3s;
@@ -9,7 +10,7 @@
         }
 
         .card:hover {
-            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,1);
         }
 
         img {
@@ -109,6 +110,30 @@
             document.getElementById("ClassDisplay").innerHTML = "";
             for (var className in classes) {
                 var div = document.createElement("div");
+                div.className = "card";
+                
+                var cardImg = document.createElement("img");
+                cardImg.setAttribute("src", "Notely_Res/History_Room_Image.jpg");
+                cardImg.setAttribute("width", "100%");
+                cardImg.setAttribute("alt", "Image");
+                div.append(cardImg);
+                
+                var containerForDescription = document.createElement("div");
+                containerForDescription.className = "container";
+                div.append(containerForDescription);
+                
+                var classNameText = document.createElement("h4");
+                classNameText.innerHTML = className;
+                
+                var classRoomDescription = document.createElement("p");
+                classRoomDescription.innerHTML = "Class description (Click to view notes)";
+                
+                containerForDescription.append(classNameText);
+                containerForDescription.append(classRoomDescription);
+                
+                
+                /*
+                var div = document.createElement("div");
                 div.style.lineHeight = "0%";
                 div.style.width = "25%";
                 
@@ -120,6 +145,8 @@
                 
                 var noteArr = classes[className];
                 for (var i in noteArr) {
+                    //n - note name
+                    //d - note description
                     var n = document.createElement("p");
                     var d = document.createElement("p");
                     n.innerHTML = noteArr[i].name; n.style.textAlign = "center";
@@ -128,8 +155,9 @@
                     div.append(n);
                     div.append(d);
                     div.append(document.createElement("br"));
-                }
+                }*/
                 document.getElementById("ClassDisplay").append(div);
+                
             }
         }               
     </script>
@@ -150,7 +178,7 @@
         </div>
         <br><br>
         <button onclick="displayNotes()">Display Notes</button>
-        <div id="ClassDisplay">
+        <div id="ClassDisplay" style="width: 100%">
             
         </div>
     </body>
