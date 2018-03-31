@@ -1,0 +1,32 @@
+body{
+	background: white;
+}
+
+.jumbotron {
+	background: #bee9f4;
+	font-family: 'Roboto Condensed', sans-serif;;
+}
+
+.navbar-default {
+	background: #bee9f4;
+} 
+
+.jumbotron h1 {
+	color: #777;
+}
+
+.jumbotron form {
+	color: #777;
+}
+
+h1 {
+	color: #777;
+}
+
+p {
+	color: #777;
+}
+
+body {
+	color: #777;
+}
