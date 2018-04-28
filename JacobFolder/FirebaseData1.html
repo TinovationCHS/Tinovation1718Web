@@ -3,7 +3,7 @@
     <style>
         
         /*Card Style for classes*/
-        .card {
+        .cardN   {
             box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
             transition: 0.3s;
             width: 400px;
@@ -11,6 +11,9 @@
             border-radius: 5%;
             padding: 2%;
             background-color: #4edde5;
+        }
+        .card:active {             
+            transform: translateY(4px);
         }
 
         .card:hover {
@@ -32,9 +35,18 @@
 
         .container {
             padding: 2px 16px;
-        }    
+        } 
+        
+        .grow { transition: all .2s ease-in-out; }
+        .grow:hover { transform: scale(1.1); }
+        .grow:
+        
     </style>
     <script src="https://www.gstatic.com/firebasejs/4.10.0/firebase.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    
     <script>
         class Note {
             constructor(name, des) {
@@ -42,6 +54,28 @@
                 this.des = des;
             }
         }
+        
+        class NoteObj {
+            constructor(div, cardImg, classNText, classNDes) {
+                this.cardImg = cardImg;
+                this.classNText = classNText;
+                this.classNDes = classNDes;
+                this.div = div;
+                this.clicked = false;
+                this.finishedAnimation = true;
+                
+                this.click = function() {
+                    
+                    $(this.cardImg).fadeOut(1000);
+                    $(this.classNText).fadeOut(1000);
+                    $(this.classNDes).fadeOut(1000);
+                }
+            }
+            
+            
+        }
+        
+        var noteObjArr = [];
     </script>
     <script>
         //resources http://materializecss.com/getting-started.html
@@ -129,24 +163,20 @@
         
        
         function displayNotes() {
+            noteObjArr = [];
+            
             document.getElementById("ClassDisplay").innerHTML = "";
             for (var className in classes) {
                 var div = document.createElement("div");
+                div.style.width = "500px";
                // div.style.width = "25%";
             //    div.style.height = "25%";
                 div.style.textalign = "center";
             
                // div.style.align = "center";
-                div.className = "card";
-                div.onmousedown = function() {
-                    var classN = this.childNodes[1].childNodes[0].innerHTML;
-                   // console.log(classes[classN]);
-                    for (var n in classes[classN]) {
-                        var note = classes[classN][n];
-                        console.log(classN + "\n\t" + note.name + "\n\t\t" + note.des);
-                        //console.log(note.des);
-                    }
-                }
+                div.className = "cardN";
+                
+                
                 
                 
                 
@@ -157,7 +187,7 @@
                 cardImg.setAttribute("alt", "Image");
                 //cardImg.style.align = "center";
                 //cardImg.style.borderRadius = "50%";
-                cardImg.className = "img";
+                cardImg.className = "img grow";
                 div.append(cardImg);
                 
                 
@@ -174,6 +204,25 @@
                 containerForDescription.append(classNameText);
                 containerForDescription.append(classRoomDescription);
                 
+                var noteObj = new NoteObj(div, cardImg, classNameText, classRoomDescription);
+                noteObjArr.push(noteObj);
+                
+                /*
+                div.onmousedown = function() {
+                    
+                    $(cardImg).fadeOut(500);
+                    $(classNameText).fadeOut(500);
+                    $(classRoomDescription).fadeOut(500);
+                    
+                    
+                    var classN = this.childNodes[1].childNodes[0].innerHTML;
+                   // console.log(classes[classN]);
+                    for (var n in classes[classN]) {
+                        var note = classes[classN][n];
+                        console.log(classN + "\n\t" + note.name + "\n\t\t" + note.des);
+                        //console.log(note.des);
+                    }
+                }*/
                 
                 /*
                 var div = document.createElement("div");
@@ -198,13 +247,85 @@
                     div.append(n);
                     div.append(d);
                     
-                }*/
-                
+                }
+                */
                
                 document.getElementById("ClassDisplay").append(div);
                 document.getElementById("ClassDisplay").append(document.createElement("br"));
                 document.getElementById("ClassDisplay").append(document.createElement("br"));
                 
+            }
+            
+            for (var i = 0; i < noteObjArr.length; i++) {
+                var not = noteObjArr[i];
+                not.div.onmousedown = function(e) {
+                    e.preventDefault();
+                    not.clicked = !not.clicked;
+                    
+                    this.childNodes.forEach(function(e) {
+                        $(e).stop();
+                    });
+                    
+                    if (not.clicked) {
+                        //console.log(this);
+                        //console.log(not.classNText.innerHTML);
+
+                        $(this).stop().animate({width: "750px"});
+                        this.childNodes.forEach(function(e) {
+                            $(e).fadeOut(300);
+                        });
+
+
+
+                        var classN = this.childNodes[1].childNodes[0].innerHTML;
+                       // console.log(classes[classN]);
+                        for (var n in classes[classN]) {
+                            var note = classes[classN][n];
+                            //console.log(classN + "\n\t" + note.name + "\n\t\t" + note.des);
+
+                            //var cN = document.createElement("h4");
+                            //cN.innerHTML = classN;
+                            //cN.style.visibility = "hidden";
+
+                            var nName = document.createElement("h3");
+                            nName.innerHTML = note.name;
+                            //nName.style.visibility = "hidden";
+
+                            var nDes = document.createElement("h6");
+                            nDes.innerHTML = note.des;
+                            //nDes.style.visibility = "hidden";
+
+                            var dIV = document.createElement("div");
+                            dIV.style.textalign = "center";
+                            //dIV.append(cN);
+                            dIV.append(nName);
+                            dIV.append(nDes);
+
+                            this.append(dIV);
+
+                            dIV.childNodes.forEach(function(e) {
+                                $(e).fadeOut(0);
+                            });
+
+                            dIV.childNodes.forEach(function(e) {
+                                $(e).fadeIn(2000);
+                            });
+
+                            
+                        }
+                        
+                    } else {
+                        $(this).stop().animate({width: "500px"});
+                        //console.log(this.childNodes);
+                        for (var i = 2; i < this.childNodes.length; i++) {
+                            this.childNodes[i].style.visibility = "collapse";
+                            //$(this.childNodes[i]).fadeOut(50);
+                        }
+                        $(this.childNodes[0]).fadeIn(1000);
+                        $(this.childNodes[1]).fadeIn(1000);
+                        
+                    }
+                }
             }
         }     
     </script>
@@ -224,7 +345,7 @@
             <p style="color:red; visibility: collapse" id="NotFinishedText">Fill in all the fields!</p>
         </div>-->
         <br><br>
-        <button onclick="displayNotes()">Display Notes</button>
+        <button onclick="displayNotes()">Display Notes</button><br><br>
         <div id="ClassDisplay" style="width: 100%">
         </div>
     </body>
