@@ -1,0 +1,80 @@
+<!DOCTYPE html><html>
+<head>
+     <script src="https://www.gstatic.com/firebasejs/4.10.0/firebase.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        var config = {
+        apiKey: "AIzaSyBYn0-u-4jrsWB1f0TjnzSrb9rwujjO9Vk",
+        authDomain: "tinovation-data.firebaseapp.com",
+        databaseURL: "https://tinovation-data.firebaseio.com",
+        projectId: "tinovation-data",
+        storageBucket: "tinovation-data.appspot.com",
+        messagingSenderId: "438853586812"
+      };
+      firebase.initializeApp(config);
+        
+        // https://firebase.google.com/docs/auth/web/password-auth
+        // https://angularfirebase.com/lessons/managing-firebase-user-relationships-to-database-records/
+         
+        function init() {
+            document.getElementById("createUser").onclick = function() {
+                var em = document.getElementById("email").value;
+                var pas = document.getElementById("password").value;
+                console.log(em);
+                firebase.auth().createUserWithEmailAndPassword(em, pas).catch(function(error) {
+                  // Handle Errors here.
+                  var errorCode = error.code;
+                  var errorMessage = error.message;
+                    console.log(errorCode + " "+ errorMessage);
+                
+                });
+            };
+
+            document.getElementById("signIn").onclick = function() { 
+                var em = document.getElementById("email").value;
+                var pas = document.getElementById("password").value;
+                
+                firebase.auth().signInWithEmailAndPassword(em, pas).catch(function(error) {
+                  // Handle Errors here.
+                  var errorCode = error.code;
+                  var errorMessage = error.message;
+                    console.log(errorCode + " " + errorMessage);
+                });
+            };
+            
+            document.getElementById("showInfo").onclick = function() {
+                var user = firebase.auth().currentUser;
+                var name, email, photoUrl, uid, emailVerified;
+
+                if (user) {
+                     uid = user.uid;
+                     name = user.displayName;
+                     email = user.email;
+                     photoUrl = user.photoURL;
+                     emailVerified = user.emailVerified;
+                    
+                    //add uid to firebase to store data
+                    
+                } else {
+                    console.log("Sign in please");
+                }
+            }
+        }
+        
+    </script>
+    </head>
+<body onload = "init()">
+    
+    <div>
+    <input id="email" type="text">
+        <br>
+        <input id="password" type="text">
+        <br>
+        <input type="button" width="50px" value="Create" id="createUser">
+        <br><br>    
+        <input type="button" width="50px" value="Sign In" id="signIn">
+        <br><br>
+        <input type="button" width="50px" value="Show Info" id="showInfo">
+    </div>
+    </body>
+</html>
