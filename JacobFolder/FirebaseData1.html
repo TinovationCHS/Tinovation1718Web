@@ -39,7 +39,6 @@
         
         .grow { transition: all .2s ease-in-out; }
         .grow:hover { transform: scale(1.1); }
-        .grow:
         
     </style>
     <script src="https://www.gstatic.com/firebasejs/4.10.0/firebase.js"></script>
@@ -97,10 +96,13 @@
         var classroomParent = database.ref().child("Classrooms");
         
         var classes = {};
+        var currentUser;
+        var users = database.ref().child("Users");
+        
         //loops through the classes
         //finds the notes and adds them in
         function updateNotes(callback) {
-            classroomParent.ref.once("value")
+            /*classroomParent.ref.once("value")
                 .then(function(snapshot) {
                 snapshot.forEach(function(childSnapShot) {
                     var key = childSnapShot.key;
@@ -114,13 +116,96 @@
                     });
                     classes[key] = notes;
                 });
-            });
+            });*/
+            if (currentUser == null) {
+                console.log("Sign in");
+            }
+            classes.clear;
+            /*
+            users.ref.once("value")
+                    .then(function(snapshot) {
+                        snapshot.forEach(function(childSnapShot) {
+                            //uid
+                            var key = childSnapShot.key;
+                            var val = childSnapShot.val();
+                            if (key == currentUser.uid) {
+                                var notes = [];
+                                childSnapShot.forEach(function (child2SnapShot){
+                                    //classroom
+                                    child2SnapShot.forEach(function (classObj) {
+                                       //classes
+                                        console.log(classObj);
+                                        classObj.forEach(function(noteObj) {
+                                           //note object
+                                            var n = new Note(noteObj.key, noteObj.val());
+                                             console.log(noteObj.key + ": " + noteObj.val());
+                                            notes.push(n);
+                                        });
+                                        console.log(notes);
+                                        classes[classObj.key] = notes;
+                                        notes = [];
+                                    });                                                                              
+                                });
+                            }
+                        });
+                    });
+            console.log(classes);
+            */
+            var name, email, photoUrl, uid, emailVerified;
+                //console.log(currentUser);
+                if (currentUser) {
+                     uid = currentUser.uid;
+                     name = currentUser.displayName;
+                     email = currentUser.email;
+                     photoUrl = currentUser.photoURL;
+                     emailVerified = currentUser.emailVerified;
+                    
+                    users.ref.once("value")
+                    .then(function(snapshot) {
+                        snapshot.forEach(function(childSnapShot) {
+                            //uid
+                            var key = childSnapShot.key;
+                            var val = childSnapShot.val();
+                            if (key == uid) {
+                                var notes = [];
+                                childSnapShot.forEach(function (child2SnapShot){
+                                    //classroom
+                                    child2SnapShot.forEach(function (classObj) {
+                                       //classes
+                                        classObj.forEach(function(noteObj) {
+                                           //note object
+                                            var n = new Note(noteObj.key, noteObj.val());
+                                            //console.log(noteObj.key + ": " + noteObj.val());
+                                            notes.push(n);
+                                        });
+                                        
+                                        classes[classObj.key] = notes;
+                                        notes = [];
+                                    });
+                                                           
+                                                           
+                                   
+                                });
+                                
+                            }
+                        });
+                    });
+                      
+                } else {
+                    console.log("Sign in please");
+                }
+            //console.log("FINISHED");
+            //console.log(classes);
             callback && callback();
         }
         function addToFireBase(cN, nN, nD) {
+            if (currentUser == null) {
+                console.log("Sign in first");
+                return;
+            }
             console.log(cN + " " + nN + " " + nD);
             var updates = {};
-            updates['/Classrooms/' + cN + '/' + nN] = nD; 
+            updates['/Users/' + currentUser.uid + '/Classrooms/'+ cN + '/' + nN] = nD; 
             database.ref().update(updates);
             updateNotes();
         }
@@ -138,11 +223,111 @@
             className = document.getElementById("className");
             noteName = document.getElementById("noteName");
             noteDes = document.getElementById("description");
+            /*
             updateNotes(function() {
                 setTimeout(function() {
                     displayNotes();
                 }, 1000);
+            });*/
+            
+            firebase.auth().signOut().then(function() {
+                  console.log('Signed Out');
+                }, function(error) {
+                  console.error('Sign Out Error', error);
+                });
+            firebase.auth().onAuthStateChanged(function(user) {
+              if (user) {
+                currentUser = user;
+                updateNotes();
+              } else {
+                // No user is signed in.
+              }
             });
+            
+            document.getElementById("createUser").onclick = function() {
+                var em = document.getElementById("email").value;
+                var pas = document.getElementById("password").value;
+                console.log(em);
+                firebase.auth().createUserWithEmailAndPassword(em, pas).catch(function(error) {
+                  // Handle Errors here.
+                  var errorCode = error.code;
+                  var errorMessage = error.message;
+                    console.log(errorCode + " "+ errorMessage);
+                
+                }).then(function(e) {
+                    currentUser = firebase.auth().currentUser;
+                    var updates = {};
+                    updates['/Users/' + currentUser.uid + '/Classrooms/Example Class/Note Title'] = "Example Note"; 
+                    database.ref().update(updates);
+                });
+            };
+
+            document.getElementById("signIn").onclick = function() { 
+                var em = document.getElementById("email").value;
+                var pas = document.getElementById("password").value;
+                
+                firebase.auth().signInWithEmailAndPassword(em, pas).catch(function(error) {
+                  // Handle Errors here.
+                  var errorCode = error.code;
+                  var errorMessage = error.message;
+                    console.log(errorCode + " " + errorMessage);
+                });
+                
+                currentUser = firebase.auth().currentUser;
+            };
+            
+            /*
+            document.getElementById("showInfo").onclick = function() {
+                
+                //var user = firebase.auth().curentUser;
+                var name, email, photoUrl, uid, emailVerified;
+                console.log(currentUser);
+                if (currentUser) {
+                     uid = currentUser.uid;
+                     name = currentUser.displayName;
+                     email = currentUser.email;
+                     photoUrl = currentUser.photoURL;
+                     emailVerified = currentUser.emailVerified;
+                    
+                    users.ref.once("value")
+                    .then(function(snapshot) {
+                        snapshot.forEach(function(childSnapShot) {
+                            //uid
+                            var key = childSnapShot.key;
+                            var val = childSnapShot.val();
+                            if (key == uid) {
+                                var notes = [];
+                                childSnapShot.forEach(function (child2SnapShot){
+                                    //classroom
+                                    child2SnapShot.forEach(function (classObj) {
+                                       //classes
+                                        classObj.forEach(function(noteObj) {
+                                           //note object
+                                            var n = new Note(noteObj.key, noteObj.val());
+                                             console.log(noteObj.key + ": " + noteObj.val());
+                                            notes.push(n);
+                                        });
+                                        
+                                        classes[classObj.key] = notes;
+                                        notes = [];
+                                    });
+                                                           
+                                                           
+                                   
+                                });
+                                
+                            }
+                        });
+                    });
+                      
+                } else {
+                    console.log("Sign in please");
+                }
+                console.log(classes);
+            }
+            */
+            
+            
             
         }
         
@@ -164,176 +349,179 @@
         
        
         function displayNotes() {
-            noteObjArr = [];
-            
-            document.getElementById("ClassDisplay").innerHTML = "";
-            for (var className in classes) {
-                var div = document.createElement("div");
-                div.style.width = "500px";
-               // div.style.width = "25%";
-            //    div.style.height = "25%";
-                div.style.textalign = "center";
-            
-               // div.style.align = "center";
-                div.className = "cardN";
-                
-                
-                
-                
-                
-                var cardImg = document.createElement("img");
-                cardImg.setAttribute("src", "Notely_Res/History_Room_Image.jpg");
-                //cardImg.setAttribute("width", "50%");
-                //cardImg.setAttribute("height", "50%");
-                cardImg.setAttribute("alt", "Image");
-                //cardImg.style.align = "center";
-                //cardImg.style.borderRadius = "50%";
-                cardImg.className = "img grow";
-                div.append(cardImg);
-                
-                
-                var containerForDescription = document.createElement("div");
-                containerForDescription.className = "container";
-                div.append(containerForDescription);
-                
-                var classNameText = document.createElement("h4");
-                classNameText.innerHTML = className;
-                classNameText.style.textAlign = "center"; 
-                var classRoomDescription = document.createElement("p");
-                classRoomDescription.innerHTML = "Class description (Click to view notes)";
-                
-                containerForDescription.append(classNameText);
-                containerForDescription.append(classRoomDescription);
-                
-                var noteObj = new NoteObj(div, cardImg, classNameText, classRoomDescription);
-                noteObjArr.push(noteObj);
-                
-                /*
-                div.onmousedown = function() {
-                    
-                    $(cardImg).fadeOut(500);
-                    $(classNameText).fadeOut(500);
-                    $(classRoomDescription).fadeOut(500);
-                    
-                    
-                    var classN = this.childNodes[1].childNodes[0].innerHTML;
-                   // console.log(classes[classN]);
-                    for (var n in classes[classN]) {
-                        var note = classes[classN][n];
-                        console.log(classN + "\n\t" + note.name + "\n\t\t" + note.des);
-                        //console.log(note.des);
-                    }
-                }*/
-                
-                /*
-                var div = document.createElement("div");
-                div.style.lineHeight = "0%";
-                div.style.width = "25%";
-                
-                var classNameText = document.createElement("p");
-                classNameText.innerHTML = className;
-                classNameText.style.color = "red";
-                
-                div.append(classNameText);
-                
-                var noteArr = classes[className];
-                for (var i in noteArr) {
-                    //n - note name
-                    //d - note description
-                    var n = document.createElement("p");
-                    var d = document.createElement("p");
-                    n.innerHTML = noteArr[i].name; n.style.textAlign = "center";
-                    d.innerHTML = noteArr[i].des; d.style.textAlign = "center";
-                    
-                    div.append(n);
-                    div.append(d);
-                    
-                }
-                */
-               
-                document.getElementById("ClassDisplay").append(div);
-                document.getElementById("ClassDisplay").append(document.createElement("br"));
-                document.getElementById("ClassDisplay").append(document.createElement("br"));
-                
-            }
-            
-            for (var i = 0; i < noteObjArr.length; i++) {
-                var not = noteObjArr[i];
-                not.div.onmousedown = function(e) {
-                    e.preventDefault();
-                    not.clicked = !not.clicked;
-                    
-                    this.childNodes.forEach(function(e) {
-                        $(e).stop();
-                    });
-                    
-                    if (not.clicked) {
-                        //console.log(this);
-                        //console.log(not.classNText.innerHTML);
+            updateNotes(function() {
+                //console.log(classes);
+                noteObjArr = [];
 
-                        $(this).stop().animate({width: "750px"});
-                        this.childNodes.forEach(function(e) {
-                            $(e).fadeOut(300);
-                        });
+                document.getElementById("ClassDisplay").innerHTML = "";
+                for (var className in classes) {
+                    var div = document.createElement("div");
+                    div.style.width = "500px";
+                   // div.style.width = "25%";
+                //    div.style.height = "25%";
+                    div.style.textalign = "center";
 
+                   // div.style.align = "center";
+                    div.className = "cardN";
+
+
+
+
+
+                    var cardImg = document.createElement("img");
+                    cardImg.setAttribute("src", "Notely_Res/History_Room_Image.jpg");
+                    //cardImg.setAttribute("width", "50%");
+                    //cardImg.setAttribute("height", "50%");
+                    cardImg.setAttribute("alt", "Image");
+                    //cardImg.style.align = "center";
+                    //cardImg.style.borderRadius = "50%";
+                    cardImg.className = "img grow";
+                    div.append(cardImg);
+
+
+                    var containerForDescription = document.createElement("div");
+                    containerForDescription.className = "container";
+                    div.append(containerForDescription);
+
+                    var classNameText = document.createElement("h4");
+                    classNameText.innerHTML = className;
+                    classNameText.style.textAlign = "center"; 
+                    var classRoomDescription = document.createElement("p");
+                    classRoomDescription.innerHTML = "Class description (Click to view notes)";
+
+                    containerForDescription.append(classNameText);
+                    containerForDescription.append(classRoomDescription);
+
+                    var noteObj = new NoteObj(div, cardImg, classNameText, classRoomDescription);
+                    noteObjArr.push(noteObj);
+
+                    /*
+                    div.onmousedown = function() {
+
+                        $(cardImg).fadeOut(500);
+                        $(classNameText).fadeOut(500);
+                        $(classRoomDescription).fadeOut(500);
 
 
                         var classN = this.childNodes[1].childNodes[0].innerHTML;
                        // console.log(classes[classN]);
                         for (var n in classes[classN]) {
                             var note = classes[classN][n];
-                            //console.log(classN + "\n\t" + note.name + "\n\t\t" + note.des);
+                            console.log(classN + "\n\t" + note.name + "\n\t\t" + note.des);
+                            //console.log(note.des);
+                        }
+                    }*/
 
-                            //var cN = document.createElement("h4");
-                            //cN.innerHTML = classN;
-                            //cN.style.visibility = "hidden";
+                    /*
+                    var div = document.createElement("div");
+                    div.style.lineHeight = "0%";
+                    div.style.width = "25%";
 
-                            var nName = document.createElement("h3");
-                            nName.innerHTML = note.name;
-                            //nName.style.visibility = "hidden";
+                    var classNameText = document.createElement("p");
+                    classNameText.innerHTML = className;
+                    classNameText.style.color = "red";
 
-                            var nDes = document.createElement("h6");
-                            nDes.innerHTML = note.des;
-                            //nDes.style.visibility = "hidden";
+                    div.append(classNameText);
 
-                            var dIV = document.createElement("div");
-                            dIV.style.textalign = "center";
-                            //dIV.append(cN);
-                            dIV.append(nName);
-                            dIV.append(nDes);
+                    var noteArr = classes[className];
+                    for (var i in noteArr) {
+                        //n - note name
+                        //d - note description
+                        var n = document.createElement("p");
+                        var d = document.createElement("p");
+                        n.innerHTML = noteArr[i].name; n.style.textAlign = "center";
+                        d.innerHTML = noteArr[i].des; d.style.textAlign = "center";
 
-                            this.append(dIV);
+                        div.append(n);
+                        div.append(d);
 
-                            dIV.childNodes.forEach(function(e) {
-                                $(e).fadeOut(0);
+                    }
+                    */
+
+                    document.getElementById("ClassDisplay").append(div);
+                    document.getElementById("ClassDisplay").append(document.createElement("br"));
+                    document.getElementById("ClassDisplay").append(document.createElement("br"));
+
+                }
+
+                for (var i = 0; i < noteObjArr.length; i++) {
+                    var not = noteObjArr[i];
+                    not.div.onmousedown = function(e) {
+                        e.preventDefault();
+                        not.clicked = !not.clicked;
+
+                        this.childNodes.forEach(function(e) {
+                            $(e).stop();
+                        });
+
+                        if (not.clicked) {
+                            //console.log(this);
+                            //console.log(not.classNText.innerHTML);
+
+                            $(this).stop().animate({width: "750px"});
+                            this.childNodes.forEach(function(e) {
+                                $(e).fadeOut(300);
                             });
 
-                            dIV.childNodes.forEach(function(e) {
-                                $(e).fadeIn(2000);
-                            });
 
-                            
+
+                            var classN = this.childNodes[1].childNodes[0].innerHTML;
+                           // console.log(classes[classN]);
+                            for (var n in classes[classN]) {
+                                var note = classes[classN][n];
+                                //console.log(classN + "\n\t" + note.name + "\n\t\t" + note.des);
+
+                                //var cN = document.createElement("h4");
+                                //cN.innerHTML = classN;
+                                //cN.style.visibility = "hidden";
+
+                                var nName = document.createElement("h3");
+                                nName.innerHTML = note.name;
+                                //nName.style.visibility = "hidden";
+
+                                var nDes = document.createElement("h6");
+                                nDes.innerHTML = note.des;
+                                //nDes.style.visibility = "hidden";
+
+                                var dIV = document.createElement("div");
+                                dIV.style.textalign = "center";
+                                //dIV.append(cN);
+                                dIV.append(nName);
+                                dIV.append(nDes);
+
+                                this.append(dIV);
+
+                                dIV.childNodes.forEach(function(e) {
+                                    $(e).fadeOut(0);
+                                });
+
+                                dIV.childNodes.forEach(function(e) {
+                                    $(e).fadeIn(2000);
+                                });
+
+
+                            }
+
+                        } else {
+                            $(this).stop().animate({width: "500px"});
+                            //console.log(this.childNodes);
+                            for (var i = 2; i < this.childNodes.length; i++) {
+                                this.childNodes[i].style.visibility = "collapse";
+                                //$(this.childNodes[i]).fadeOut(50);
+                            }
+                            $(this.childNodes[0]).fadeIn(1000);
+                            $(this.childNodes[1]).fadeIn(1000);
+
                         }
-                        
-                    } else {
-                        $(this).stop().animate({width: "500px"});
-                        //console.log(this.childNodes);
-                        for (var i = 2; i < this.childNodes.length; i++) {
-                            this.childNodes[i].style.visibility = "collapse";
-                            //$(this.childNodes[i]).fadeOut(50);
-                        }
-                        $(this.childNodes[0]).fadeIn(1000);
-                        $(this.childNodes[1]).fadeIn(1000);
-                        
                     }
                 }
-            }
+            });
         }     
     </script>
     </head>
     <body onload="init()">
         <br><br>
-        <!--<div align="center">
+        <div align="center">
             Class:<br>
             <input type="text" id="className" value="class_name"><br>
             Note Title:<br>
@@ -344,8 +532,20 @@
         </div>
         <div align="center">
             <p style="color:red; visibility: collapse" id="NotFinishedText">Fill in all the fields!</p>
-        </div>-->
+        </div>
         <br><br>
+        <div>
+        <input id="email" type="text">
+        <br>
+        <input id="password" type="text" style="">
+        <br>
+        <input type="button" width="50px" value="Create" id="createUser" style="default">
+        <br><br>    
+        <input type="button" width="50px" value="Sign In" id="signIn" style="default">
+        <br><br>
+        <input type="button" width="50px" value="Show Info" id="showInfo" style="!important">
+    </div>
+        <br><br><br>
         <button onclick="displayNotes()">Display Notes</button><br><br>
         <div id="ClassDisplay" style="width: 100%">
         </div>

@@ -2,6 +2,16 @@
 <head>
      <script src="https://www.gstatic.com/firebasejs/4.10.0/firebase.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    
+    <script>
+    class Note {
+            constructor(name, des) {
+                this.name = name;
+                this.des = des;
+            }
+        }
+    </script>
+    
     <script>
         var config = {
         apiKey: "AIzaSyBYn0-u-4jrsWB1f0TjnzSrb9rwujjO9Vk",
@@ -12,11 +22,45 @@
         messagingSenderId: "438853586812"
       };
       firebase.initializeApp(config);
+        var database = firebase.database();
+         var users = database.ref().child("Users");
         
         // https://firebase.google.com/docs/auth/web/password-auth
         // https://angularfirebase.com/lessons/managing-firebase-user-relationships-to-database-records/
          
+        var classes = {};
+        var currentUser;
+        
+        function makeNewNote() {
+            //check if database has the same note title
+            var className = document.getElementById("className");
+            var noteName = document.getElementById("noteName");
+            var noteDes = document.getElementById("description");
+            var updates = {};
+            if (currentUser != null) {
+                updates['/Users/' + currentUser.uid + '/Classrooms/'+ className.value + '/' + noteName.value] = noteDes.value; 
+                database.ref().update(updates);
+            } else {
+                console.log("Sign in first!");
+            }
+        }
+        
         function init() {
+            firebase.auth().signOut().then(function() {
+                  console.log('Signed Out');
+                }, function(error) {
+                  console.error('Sign Out Error', error);
+                });
+            firebase.auth().onAuthStateChanged(function(user) {
+              if (user) {
+                currentUser = user;
+              } else {
+                // No user is signed in.
+              }
+            });
+            
+            
+            
             document.getElementById("createUser").onclick = function() {
                 var em = document.getElementById("email").value;
                 var pas = document.getElementById("password").value;
@@ -27,6 +71,11 @@
                   var errorMessage = error.message;
                     console.log(errorCode + " "+ errorMessage);
                 
+                }).then(function(e) {
+                    currentUser = firebase.auth().currentUser;
+                    var updates = {};
+                    updates['/Users/' + currentUser.uid + '/Classrooms/Example Class/Note Title'] = "Example Note"; 
+                    database.ref().update(updates);
                 });
             };
 
@@ -40,31 +89,75 @@
                   var errorMessage = error.message;
                     console.log(errorCode + " " + errorMessage);
                 });
+                
+                currentUser = firebase.auth().currentUser;
+                
             };
             
             document.getElementById("showInfo").onclick = function() {
-                var user = firebase.auth().currentUser;
+                
+                //var user = firebase.auth().curentUser;
                 var name, email, photoUrl, uid, emailVerified;
-
-                if (user) {
-                     uid = user.uid;
-                     name = user.displayName;
-                     email = user.email;
-                     photoUrl = user.photoURL;
-                     emailVerified = user.emailVerified;
+                console.log(currentUser);
+                if (currentUser) {
+                     uid = currentUser.uid;
+                     name = currentUser.displayName;
+                     email = currentUser.email;
+                     photoUrl = currentUser.photoURL;
+                     emailVerified = currentUser.emailVerified;
                     
                     //add uid to firebase to store data
-                    
+                    users.ref.once("value")
+                    .then(function(snapshot) {
+                        snapshot.forEach(function(childSnapShot) {
+                            //uid
+                            var key = childSnapShot.key;
+                            var val = childSnapShot.val();
+                            if (key == uid) {
+                                var notes = [];
+                                childSnapShot.forEach(function (child2SnapShot){
+                                    //classroom
+                                    child2SnapShot.forEach(function (classObj) {
+                                       //classes
+                                        classObj.forEach(function(noteObj) {
+                                           //note object
+                                            var n = new Note(noteObj.key, noteObj.val());
+                                             console.log(noteObj.key + ": " + noteObj.val());
+                                            notes.push(n);
+                                        });
+                                        classes[classObj.key] = notes;
+                                    });
+                                                           
+                                                           
+                                   
+                                });
+                                
+                            }
+                        });
+                    });
+                      
                 } else {
                     console.log("Sign in please");
                 }
+                console.log(classes);
             }
         }
         
     </script>
     </head>
 <body onload = "init()">
-    
+    <div align="center">
+            Class:<br>
+            <input type="text" id="className" value="class_name"><br>
+            Note Title:<br>
+            <input type="text" id="noteName" value="note_title"><br>
+            Notes:<br>
+            <textarea id="description" rows="5" cols="40">Today I learned...</textarea><br>
+            <button onclick="makeNewNote()" id="newNoteButton">Create!</button>
+        </div>
+        <div align="center">
+            <p style="color:red; visibility: collapse" id="NotFinishedText">Fill in all the fields!</p>
+        </div><br><br><br>
     <div>
     <input id="email" type="text">
         <br>

@@ -1,0 +1,55 @@
+<html>
+<head>
+     <script src="https://www.gstatic.com/firebasejs/4.10.0/firebase.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    
+   <script>
+    /*
+        set up firebase key
+    */
+    </script> 
+    
+    <script>
+        /*
+            make sure to download nodejs
+            
+            follow this example
+            https://stackoverflow.com/questions/38497334/how-to-run-html-file-on-localhost
+            
+            
+        */
+        function start() {
+            
+        }
+        
+        function signIn() {
+            var emailField = document.getElementById("emailField");
+            var password = document.getElementById("passwordField");
+            
+            console.log(emailField.value);
+            console.log(password.value);
+            
+            firebase.auth().createUserWithEmailAndPassword(emailField.value, password.value).catch(function(error) {
+              // Handle Errors here.
+              var errorCode = error.code;
+              var errorMessage = error.message;
+              // ...
+            });
+        }
+        
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                console.log("Signed In");
+            }                                   
+        });
+        
+    </script>
+</head>
+<body onload="start()">
+    <div style="border: 1px solid black">
+        <input type="text" placeHolder="Email" id="emailField"><br><br>
+        <input type="password" placeholder="Password" id="passwordField"><br><br>
+        <input type="button" value="Sign In" id="signInButton" onclick="signIn()">
+    </div>
+</body>
+</html>
