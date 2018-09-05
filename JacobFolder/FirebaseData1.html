@@ -1,6 +1,8 @@
 <!DOCTYPE html> <html>
 <head>
+    <!-- https://stackoverflow.com/questions/5454593/how-to-clear-all-css-styles#5454637 -->
     <style>
+        
         
         /*Card Style for classes*/
         .cardN   {
@@ -220,8 +222,8 @@
         var noteDes;
         function init() {
             notFinishedText = document.getElementById("NotFinishedText");
-            className = document.getElementById("className");
-            noteName = document.getElementById("noteName");
+            className = document.getElementById("class_name");
+            noteName = document.getElementById("note_title");
             noteDes = document.getElementById("description");
             /*
             updateNotes(function() {
@@ -521,32 +523,80 @@
     </head>
     <body onload="init()">
         <br><br>
-        <div align="center">
+        <h3 align="center">Create Note</h3>
+        <br>
+        <div class="row">
+            <form class="col s12">
+              <div class="row">
+                <div class="input-field col s6">
+                  <input placeholder="Class Name" id="class_name" type="text" class="validate">
+                  <label for="class_name">Class Name</label>
+                </div>
+                <div class="input-field col s6">
+                  <input placeholder="Note Title" id="note_title" type="text" class="validate">
+                  <label for="note_title">Note Title</label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="input-field col s12">
+                  <input placeholder="Note Description"  id="description" type="text" class="validate">
+                  <label for="description">Note Description</label>
+                </div>
+              </div>
+            </form>
+            <center><button class="btn waves-effect waves-light" onclick="makeNewNote()" id="newNoteButton">Create!</button></center>
+          </div>
+        <br>
+        <!--
+        <div align="center" style="resetStyles">
             Class:<br>
             <input type="text" id="className" value="class_name"><br>
             Note Title:<br>
             <input type="text" id="noteName" value="note_title"><br>
             Notes:<br>
             <textarea id="description" rows="5" cols="40">Today I learned...</textarea><br>
-            <button onclick="makeNewNote()" id="newNoteButton">Create!</button>
+            
         </div>
+        -->
+        
         <div align="center">
             <p style="color:red; visibility: collapse" id="NotFinishedText">Fill in all the fields!</p>
         </div>
         <br><br>
+        <!--
         <div>
-        <input id="email" type="text">
+        <input id="email" type="text" value="email">
         <br>
-        <input id="password" type="text" style="">
+        <input id="password" type="text" style="" value="pass">
         <br>
         <input type="button" width="50px" value="Create" id="createUser" style="default">
         <br><br>    
         <input type="button" width="50px" value="Sign In" id="signIn" style="default">
         <br><br>
         <input type="button" width="50px" value="Show Info" id="showInfo" style="!important">
-    </div>
-        <br><br><br>
-        <button onclick="displayNotes()">Display Notes</button><br><br>
+    </div>-->
+        
+        <h4 align="center">Login</h4>
+        <h6 align="center">Use test@gmail.com and 123456 for an example</h6><br>
+        <div class="row">
+            <form class="col s12">
+              <div class="row">
+                <div class="input-field col s6">
+                  <input placeholder="Email" id="email" type="text" class="validate">
+                  <label for="email">Email</label>
+                </div>
+                <div class="input-field col s6">
+                  <input placeholder="Password" id="password" type="text" class="validate">
+                  <label for="password">Password</label>
+                </div>
+              </div>
+            </form>
+            <center><input type="button" width="50px" value="Create" id="createUser" class="btn waves-effect waves-light">
+            <br><br>    
+            <input type="button" width="50px" value="Sign In" id="signIn" class="btn waves-effect waves-light"></center>
+          </div>
+        <br><br>
+        <center><button class="btn waves-effect waves-light" onclick="displayNotes()">Display Notes</button></center><br><br>
         <div id="ClassDisplay" style="width: 100%">
         </div>
     </body>
